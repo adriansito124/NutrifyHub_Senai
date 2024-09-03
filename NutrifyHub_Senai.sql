@@ -12,17 +12,17 @@ CREATE TABLE usuario (
 
 CREATE TABLE adm (
     admID INT PRIMARY KEY AUTO_INCREMENT,
-    tipo INT NOT NULL,
-    FOREIGN KEY (tipo) REFERENCES usuario(userType)
+    id_user INT NOT NULL,
+    FOREIGN KEY (id_user) REFERENCES usuario(userID)
 );
 
 
 CREATE TABLE nutri (
     nutriID INT PRIMARY KEY AUTO_INCREMENT,
     CRN INT NOT NULL,
-    tipo INT NOT NULL,
+    id_user INT NOT NULL,
     id_adm INT NOT NULL,
-    FOREIGN KEY (tipo) REFERENCES usuario(userType),
+    FOREIGN KEY (id_user) REFERENCES usuario(userID),
     FOREIGN KEY (id_adm) REFERENCES adm(admID)
 );
 
@@ -30,9 +30,9 @@ CREATE TABLE nutri (
 CREATE TABLE pacient (
     pacientID INT PRIMARY KEY AUTO_INCREMENT,
     ofensiva INT NOT NULL,
-    tipo INT NOT NULL,
+    id_user INT NOT NULL,
     id_nutri INT NOT NULL,
-    FOREIGN KEY (tipo) REFERENCES usuario(userType),
+    FOREIGN KEY (id_user) REFERENCES usuario(userID),
     FOREIGN KEY (id_nutri) REFERENCES nutri(nutriID)
 );
 
@@ -87,7 +87,21 @@ CREATE TABLE ReceitaDieta (
     FOREIGN KEY (id_dieta) REFERENCES dieta(dietaID)
 );
 
+DELIMITER //
+CREATE PROCEDURE add_nutri (nome varchar(100), email varchar(100), senha varchar(100), CRN int, adm int)
+BEGIN
 
+DECLARE newUserID INT;
+
+INSERT INTO usuario VALUES
+(DEFAULT, nome, email, senha, true, 2);
+
+SET newUserID = new.userID;
+
+INSERT INTO nutri VALUES
+(DEFAULT, CRN, newUserID, adm);
+END
+// DELIMITER ;
 
 
 
