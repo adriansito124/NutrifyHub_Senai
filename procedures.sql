@@ -3,9 +3,14 @@ use NutrifyHUb;
 -- PROCEDURE DE ADICIONAR NUTRICIONISTA --
 
 DELIMITER //
-CREATE PROCEDURE add_nutri (nome varchar(100), email varchar(100), senha varchar(100), CRN VARCHAR(5), user_type int)
+CREATE PROCEDURE add_nutri (nome varchar(100), email varchar(100), senha varchar(100), CRN VARCHAR(5), iduser int)
 BEGIN
     DECLARE newUserID INT;
+    DECLARE user_type int;
+    
+    SELECT userType INTO user_type
+    FROM usuario
+    WHERE userID = iduser;
     
     -- verifica o tipo de usuário que esta inserindo o nutricionista
     IF user_type = 0 THEN
@@ -28,13 +33,6 @@ END
 //
 
 DELIMITER ;
-
--- --------------------
-Call add_nutri("nome", "email", "senha", "CRN", 0);
-select * from nutri;
-select * from usuario;
-select * from log;
--- --------------------
 
 -- PROCEDURE DE ADICIONAR NUTRICIONISTA --
 
@@ -70,13 +68,6 @@ BEGIN
     END IF;
 END
 // DELIMITER ;
-
--- --------------------
-Call add_pacient("nome", "email", "senha", 1);
-select * from pacient;
-select * from usuario;
-select * from log;
--- --------------------
 
 -- PROCEDURE DE CRIAR NOVO PACIENTE --
 
@@ -116,13 +107,6 @@ BEGIN
 END
 // DELIMITER ;
 
--- --------------------
-Call add_receita("Carne", 2);
-select * from receita;
-select * from usuario;
-select * from log;
--- --------------------
-
 -- PROCEDURE DE ADICIONAR RECEITA --
 
 
@@ -151,12 +135,6 @@ BEGIN
 
 END
 // DELIMITER ;
-
--- --------------------
-Call add_ing("ing", 1, "un", 8);
-select * from ingredients;
-select * from log;
--- --------------------
 
 -- PROCEDURE DE ADICIONAR INGREDIENTE --
 
@@ -197,12 +175,6 @@ END
 DELIMITER ;
 
 
--- --------------------
-Call add_step(1, "teste", 1);
-select * from steps;
-select * from log;
--- --------------------
-
  -- add step  --  
  
  
@@ -212,25 +184,25 @@ select * from log;
  DELIMITER //
 CREATE PROCEDURE add_dieta (creatorID int, pacientID int, calo int, prote int, carbo int, agua float)
 BEGIN
-    DECLARE id_criador INT;
-    DECLARE id_pacient INT;
+    DECLARE id_criador INT DEFAULT 0;
+    DECLARE id_pacient INT DEFAULT 0;
     
     -- Verifica se o criador existe
-    SELECT nutriID INTO id_criador
-    FROM nutri
-    WHERE nutriID = creatorID;
+    SELECT userType INTO id_criador
+    FROM usuario
+    WHERE userID = creatorID;
     
     -- Verifica se o paciente existe
-    SELECT pacienteID INTO id_pacient
-    FROM pacient
-    WHERE pacienteID = pacientID;
+    SELECT userType INTO id_pacient
+    FROM usuario
+    WHERE userID = pacientID;
     
-    IF id_criador IS NULL THEN
-        INSERT INTO log (mensagem) VALUES ('O nutricionista não existe!');
+    IF id_criador != 1 THEN
+        INSERT INTO log (mensagem) VALUES ('Nutricionista não encontrado!');
     ELSE
     
-        IF id_pacient IS NULL THEN
-            INSERT INTO log (mensagem) VALUES ('O Paciente não existe!');
+        IF id_pacient != 2 THEN
+            INSERT INTO log (mensagem) VALUES ('Paciente não encontrado!');
         ELSE
             INSERT INTO dieta (criadorID, pacienteID, calorias, proteinas, carboidratos, agua) 
             VALUES (creatorID, pacientID, calo, prote, carbo, agua);
@@ -239,18 +211,9 @@ BEGIN
 END
 // DELIMITER ;
  
- 
--- --------------------
-Call add_dieta(1, 1, 50, 40, 30, 2.5);
-select * from dieta;
-select * from log;
-select * from nutri;
-select * from pacient;
--- -------------------- 
- 
 --  NOVA DIETA --
 
-
+-- drop procedure add_dieta;
 
 -- ADICIONAR RECEITA NA DIETA --
 
@@ -302,14 +265,80 @@ BEGIN
 END
 // DELIMITER ;
 
--- --------------------
-Call add_ReceitaDieta(3, 2, "Manhã");
-select * from ReceitaDieta;
-select * from log;
-select * from dieta;
-select * from receita;
-select * from nutri;
-select * from usuario;
--- -------------------- 
-
 -- ADICIONAR RECEITA NA DIETA --
+
+
+
+-- DELETAR USUARIO -- 
+
+DELIMITER //
+CREATE PROCEDURE delete_user (id int)
+BEGIN
+
+	DECLARE stat BOOLEAN;  
+    DECLARE user_type int;
+    DECLARE nomii varchar(100);
+    
+    SELECT userType INTO user_type
+    FROM usuario
+    WHERE userID = id;
+    
+    SELECT nome INTO nomii
+    FROM usuario
+    WHERE userID = id;
+    
+    SELECT ativo INTO stat
+    FROM usuario
+    WHERE userID = id;
+    
+    -- verifica quem esta excluindo
+    IF user_type = 0 THEN
+		
+        INSERT INTO log(mensagem) VALUES ("Impossivel deletar um administrador!");
+    
+    ELSE
+		
+        IF stat = FALSE THEN
+			INSERT INTO log(mensagem) VALUES ("Usuario ja esta desativado!");
+        ELSE
+			UPDATE usuario
+			SET ativo = false
+			WHERE id = userID;
+			
+			INSERT INTO log(mensagem) VALUES (CONCAT(nomii, ' foi desativado com sucesso!'));
+        END IF;
+    END IF;
+END
+//
+
+DELIMITER ;
+
+-- DELETAR USUARIO -- 
+
+
+
+-- DELETAR RECEITA --
+
+DELIMITER //
+CREATE PROCEDURE delete_recipe (id int)
+BEGIN
+
+	declare idd int;
+    
+    SELECT receitaID INTO idd
+	FROM receita
+	WHERE receitaID = id;
+    
+    if idd is null then
+		INSERT INTO log(mensagem) VALUES ("Receita não encontrada!");
+    else
+		DELETE FROM receita where id = receitaID;
+    end if;
+
+	
+END
+//
+
+DELIMITER ;
+
+-- DELETAR RECEITA --

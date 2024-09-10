@@ -1,6 +1,8 @@
 create database NutrifyHub;
 use nutrifyhub;
 
+-- drop database nutrifyhub
+
 CREATE TABLE usuario (
     userID INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(100) NOT NULL,
@@ -63,7 +65,7 @@ CREATE TABLE dieta (
     proteinas INT NOT NULL,
     carboidratos INT NOT NULL,
     agua FLOAT NOT NULL,
-    FOREIGN KEY (pacienteID) REFERENCES pacient(pacienteID),
+    FOREIGN KEY (pacienteID) REFERENCES usuario(userID),
     FOREIGN KEY (criadorID) REFERENCES usuario(userID)
 );
 
